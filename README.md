@@ -348,7 +348,6 @@ playing = 0
 basic.forever(on_forever)
 ```
 
-
 > Open this page at [https://titocampis.github.io/smart_cutebot_car_technology/](https://titocampis.github.io/smart_cutebot_car_technology/)
 
 ## Use as Extension
@@ -367,8 +366,3 @@ To edit this repository in MakeCode.
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
 * paste **https://github.com/titocampis/smart_cutebot_car_technology** and click import
-
-#### Metadata (used for search, rendering)
-
-* for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>

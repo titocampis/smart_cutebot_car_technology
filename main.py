@@ -1,117 +1,82 @@
-#########################################################################################
-#
-# Methods
-#
-#########################################################################################
-# Method to rest
-def rest():
-    cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 0, 0, 0)
-    cuteBot.stopcar()
-    basic.show_icon(IconNames.HEART)
-
-# Method when press A
-def on_button_pressed_a():
-    global cont
-    cont = 1
-
-# Method when press B
-def on_button_pressed_b():
-    global cont
-    cont = 2
-
-# Method when press A + B
-def on_button_pressed_ab():
-    global cont
-    cont = 3
-
-# Forever 1 method (for movement)
 def on_forever():
-    if cont == 1:
-        # LEDs
-        basic.show_leds("""
-                        # # # # #
-                        # . . . #
-                        # . . . #
-                        # . . . #
-                        # # # # #
-                        """)
-        # Movement and lights
-        cuteBot.move_time(cuteBot.Direction.RIGHT, square_turn_perc, square_turn_sec)
-        cuteBot.motors(square_lspeed, square_rspeed)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 255, 80, 10)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 98, 255, 180)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 222, 222, 40)
-        basic.pause(square_lights_pause_end)
-    elif cont == 2:
-        # LEDS
-        basic.show_leds("""
-                . . # . .
-                . . . . .
-                . # . # .
-                . . . . .
-                # . # . #
-                """)
-        # Movement and lights
-        cuteBot.move_time(cuteBot.Direction.RIGHT,
-                triangle_turn_perc,
-                triangle_turn_sec)
-        cuteBot.motors(square_lspeed, square_rspeed)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 125, 144, 10)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 15, 10, 233)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 155, 10, 190)
-        basic.pause(square_lights_pause_end)
-    elif cont == 3:
-        # LEDs
-        basic.show_leds("""
-                . # # # .
-                # . . . #
-                # . . . #
-                # . . . #
-                . # # # .
-                """)
-        # Movement
-        cuteBot.motors(circle_lspeed, circle_rspeed)
-        # Lights
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 10, 244, 111)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 111, 10, 59)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 240, 190, 10)
-        basic.pause(square_lights_pause_end)
+    global status, playing, repeat
+
+    # --- CONTROLLER ---
+    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+        if repeat < 10:
+            status = 0
+            repeat = repeat + 1
+        else:
+            status = 5
+            repeat = 0
+    elif cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
+        status = 1
+        repeat = 0
+    elif cuteBot.tracking(cuteBot.TrackingState.L_LINE_R_UNLINE):
+        status = 2
+        repeat = 0
+    elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
+        status = 3
+        repeat = 0
     else:
-        rest()
+        status = 4
+        repeat = 0
 
-#########################################################################################
-#
+    # --- ACT (movement) ---
+    if status == 0:
+        cuteBot.stopcar()
+    elif status == 1:
+        cuteBot.motors(forward_left_speed, forward_right_speed)
+    elif status == 2:
+        cuteBot.motors(low_speed_turn, high_speed_turn)
+    elif status == 3:
+        cuteBot.motors(high_speed_turn, low_speed_turn)
+    elif status == 4:
+        cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
+    elif status == 5:
+        cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
+
+
+    # --- ACT (sound) ---
+    if status == 0:
+        music.stop_all_sounds()
+        music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
+                        music.PlaybackMode.UNTIL_DONE)
+        playing = False
+    elif not playing:
+        music._play_default_background(
+            music.built_in_playable_melody(Melodies.PRELUDE),
+            music.PlaybackMode.LOOPING_IN_BACKGROUND
+        )
+        playing = True
+
+    # # --- Faces (LEDs screen) --- CANNOT GO HERE OVERLOAD AND FAIL
+    # --> Needs to go into another forever
+    # if status == 0:
+    #     basic.show_icon(IconNames.SAD)
+    # else:
+    #     basic.show_icon(IconNames.HAPPY)
+
+# Foreer faces to avoid overload
+def on_forever_faces():
+    if status == 0:
+            basic.show_icon(IconNames.SAD)
+    else:
+        basic.show_icon(IconNames.HAPPY)
+
 # Main
-#
-#########################################################################################
-# Variables
-## Square
-square_lspeed = 50
-square_rspeed = 46
-square_turn_perc = 50
-square_turn_sec = 0.3
-square_ligths_pause = 350
-square_lights_pause_end = 0
-square_forward_pause = 1000
+stop_distance = 10
+high_speed_turn = 60
+low_speed_turn = 10
+forward_left_speed = 50
+forward_right_speed = 47
+backward_speed = 40
+backward_seconds = 0.2
+turn_perc = 60
+turn_time = 0.3
+repeat = 0
+playing = False
+status = 1
 
-## Triangle
-triangle_turn_perc = 50
-triangle_turn_sec = 0.4
-
-## Circle
-circle_lspeed = 50
-circle_rspeed = 20
-
-# Execute
-cont = 0
-rest()
-input.on_button_pressed(Button.A, on_button_pressed_a)
-input.on_button_pressed(Button.B, on_button_pressed_b)
-input.on_button_pressed(Button.AB, on_button_pressed_ab)
 basic.forever(on_forever)
+basic.forever(on_forever_faces)

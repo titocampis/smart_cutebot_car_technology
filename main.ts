@@ -1,111 +1,80 @@
-// ########################################################################################
-// 
-//  Methods
-// 
-// ########################################################################################
-//  Method to rest
-function rest() {
-    cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 0, 0, 0)
-    cuteBot.stopcar()
-    basic.showIcon(IconNames.Heart)
-}
-
-//  Method when press A
-//  Method when press B
-//  Method when press A + B
-//  Forever 1 method (for movement)
-// ########################################################################################
-// 
+//  # --- Faces (LEDs screen) --- CANNOT GO HERE OVERLOAD AND FAIL
+//  --> Needs to go into another forever
+//  if status == 0:
+//      basic.show_icon(IconNames.SAD)
+//  else:
+//      basic.show_icon(IconNames.HAPPY)
+//  Foreer faces to avoid overload
 //  Main
-// 
-// ########################################################################################
-//  Variables
-// # Square
-let square_lspeed = 50
-let square_rspeed = 46
-let square_turn_perc = 50
-let square_turn_sec = 0.3
-let square_ligths_pause = 350
-let square_lights_pause_end = 0
-let square_forward_pause = 1000
-// # Triangle
-let triangle_turn_perc = 50
-let triangle_turn_sec = 0.4
-// # Circle
-let circle_lspeed = 50
-let circle_rspeed = 20
-//  Execute
-let cont = 0
-rest()
-input.onButtonPressed(Button.A, function on_button_pressed_a() {
-    
-    cont = 1
-})
-input.onButtonPressed(Button.B, function on_button_pressed_b() {
-    
-    cont = 2
-})
-input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
-    
-    cont = 3
-})
+let stop_distance = 10
+let high_speed_turn = 60
+let low_speed_turn = 10
+let forward_left_speed = 50
+let forward_right_speed = 47
+let backward_speed = 40
+let backward_seconds = 0.2
+let turn_perc = 60
+let turn_time = 0.3
+let repeat = 0
+let playing = false
+let status = 1
 basic.forever(function on_forever() {
-    if (cont == 1) {
-        //  LEDs
-        basic.showLeds(`
-                        # # # # #
-                        # . . . #
-                        # . . . #
-                        # . . . #
-                        # # # # #
-                        `)
-        //  Movement and lights
-        cuteBot.moveTime(cuteBot.Direction.right, square_turn_perc, square_turn_sec)
-        cuteBot.motors(square_lspeed, square_rspeed)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 255, 80, 10)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 98, 255, 180)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 222, 222, 40)
-        basic.pause(square_lights_pause_end)
-    } else if (cont == 2) {
-        //  LEDS
-        basic.showLeds(`
-                . . # . .
-                . . . . .
-                . # . # .
-                . . . . .
-                # . # . #
-                `)
-        //  Movement and lights
-        cuteBot.moveTime(cuteBot.Direction.right, triangle_turn_perc, triangle_turn_sec)
-        cuteBot.motors(square_lspeed, square_rspeed)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 125, 144, 10)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 15, 10, 233)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 155, 10, 190)
-        basic.pause(square_lights_pause_end)
-    } else if (cont == 3) {
-        //  LEDs
-        basic.showLeds(`
-                . # # # .
-                # . . . #
-                # . . . #
-                # . . . #
-                . # # # .
-                `)
-        //  Movement
-        cuteBot.motors(circle_lspeed, circle_rspeed)
-        //  Lights
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 10, 244, 111)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 111, 10, 59)
-        basic.pause(square_ligths_pause)
-        cuteBot.singleheadlights(cuteBot.RGBLights.ALL, 240, 190, 10)
-        basic.pause(square_lights_pause_end)
+    
+    //  --- CONTROLLER ---
+    if (cuteBot.ultrasonic(cuteBot.SonarUnit.Centimeters) < stop_distance) {
+        if (repeat < 10) {
+            status = 0
+            repeat = repeat + 1
+        } else {
+            status = 5
+            repeat = 0
+        }
+        
+    } else if (cuteBot.tracking(cuteBot.TrackingState.L_R_line)) {
+        status = 1
+        repeat = 0
+    } else if (cuteBot.tracking(cuteBot.TrackingState.L_line_R_unline)) {
+        status = 2
+        repeat = 0
+    } else if (cuteBot.tracking(cuteBot.TrackingState.L_unline_R_line)) {
+        status = 3
+        repeat = 0
     } else {
-        rest()
+        status = 4
+        repeat = 0
+    }
+    
+    //  --- ACT (movement) ---
+    if (status == 0) {
+        cuteBot.stopcar()
+    } else if (status == 1) {
+        cuteBot.motors(forward_left_speed, forward_right_speed)
+    } else if (status == 2) {
+        cuteBot.motors(low_speed_turn, high_speed_turn)
+    } else if (status == 3) {
+        cuteBot.motors(high_speed_turn, low_speed_turn)
+    } else if (status == 4) {
+        cuteBot.moveTime(cuteBot.Direction.backward, backward_speed, backward_seconds)
+    } else if (status == 5) {
+        cuteBot.moveTime(cuteBot.Direction.right, turn_perc, turn_time)
+    }
+    
+    //  --- ACT (sound) ---
+    if (status == 0) {
+        music.stopAllSounds()
+        music.play(music.tonePlayable(784, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+        playing = false
+    } else if (!playing) {
+        music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Prelude), music.PlaybackMode.LoopingInBackground)
+        playing = true
+    }
+    
+})
+basic.forever(function on_forever_faces() {
+    if (status == 0) {
+        basic.showIcon(IconNames.Sad)
+    } else {
+        basic.showIcon(IconNames.Happy)
     }
     
 })

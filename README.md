@@ -1,16 +1,50 @@
 # Vehicles Automation Activity
 ## Lights
+### Patrol car
+```python
+# Forever method
+def on_forever():
+    cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0xff0000)
+    cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0x0000ff)
+    basic.pause(100)
+    cuteBot.color_light(cuteBot.RGBLights.ALL, 0x000000)
+    basic.pause(20)
+    cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0x0000ff)
+    cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0xff0000)
+    basic.pause(100)
+    cuteBot.color_light(cuteBot.RGBLights.ALL, 0x000000)
+    basic.pause(20)
+
+# Main
+music.play(music.string_playable("B G B G B G B G ", 120),
+    music.PlaybackMode.LOOPING_IN_BACKGROUND)
+
+basic.forever(on_forever)
+
+############
+# Play music explanation
+############
+# Until done: just one time and it blocks the cpu
+# In background: just one time but without blocking the cpu (in a forever will break it)
+# Looping in backgroun: it starts again every time and does not block the cpu (in a forever will break it)
+############
+```
+
 ### Automatic headlights
 ```python
 # Forever method
 def on_forever():
-    if input.light_level() >= threshold_light:
-        cuteBot.color_light(cuteBot.RGBLights.ALL, 0x000000)
-    else:
+    external_light = input.light_level()
+
+    if external_light <= threshold_light:
         cuteBot.color_light(cuteBot.RGBLights.ALL, 0xffffff)
+    else:
+        cuteBot.color_light(cuteBot.RGBLights.ALL, 0x000000)
 
 # Main
-threshold_light = 16
+threshold_light = 20
+
+basic.clear_screen()
 basic.forever(on_forever)
 ```
 
@@ -18,47 +52,70 @@ basic.forever(on_forever)
 ### Park helper
 ```python
 # Forever method
+## No need to stop all sound because we are using UNTIL_DONE
 def on_forever():
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) <= threshold_high:
-        music.stop_all_sounds()
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    if distance <= threshold_high:
         music.play(music.tone_playable(784, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-    elif cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) <= threshold_mid:
-        music.stop_all_sounds()
+    elif distance <= threshold_mid:
         music.play(music.tone_playable(523, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-    elif cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) <= threshold_low:
-        music.stop_all_sounds()
+    elif distance <= threshold_low:
         music.play(music.tone_playable(349, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-    else:
-        music.stop_all_sounds()
 
 # Main
 threshold_high = 5
 threshold_mid = 12
 threshold_low = 20
+
 basic.forever(on_forever)
 ```
 
 ### Remaining
 // Copy from MSI python codes for intermitents (easy and dificult and pipo)
-// Ordena amb el nou ordre de l'activitat
 
 ### Explorer
 ```python
 # Forever method
 def on_forever():
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) <= turn_distance:
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance <= turn_distance:
         cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
     else:
         cuteBot.motors(50, 45)
 
 # Main
 turn_distance = 17
-basic.forever(on_forever)
 turn_perc = 50
 turn_time = 0.2
+
+basic.forever(on_forever)
+```
+
+With sound:
+```python
+# Forever method
+def on_forever():
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance <= turn_distance:
+        cuteBot.motors(turn_perc, -turn_perc)
+        music.play(music.tone_playable(440, music.beat(BeatFraction.QUARTER)),
+            music.PlaybackMode.UNTIL_DONE)
+            # It is pausing with UNTIL_DONE !!
+    else:
+        cuteBot.motors(50, 45)
+        # Don't need to stop all sounds because we are using until done !
+
+# Main
+turn_distance = 17
+turn_perc = 50
+turn_time = 0.2
+
+basic.forever(on_forever)
 ```
 
 ## AIR Sensor
@@ -71,10 +128,12 @@ def on_forever():
     cuteBot.motors(50, 45)
     if cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
         basic.show_icon(IconNames.HAPPY)
+        # No need to stop all sounds because we are using UNTIL_DONE
     else:
+        basic.show_icon(IconNames.SAD)
         music.play(music.tone_playable(988, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-        basic.show_icon(IconNames.SAD)
+
 # Main
 basic.forever(on_forever)
 ```
@@ -86,14 +145,16 @@ def on_forever():
     cuteBot.motors(50, 45)
     if cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
         basic.show_icon(IconNames.HAPPY)
+        # No need to stop all sounds because we are using UNTIL_DONE
     elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
+        basic.show_icon(IconNames.CONFUSED)
         music.play(music.tone_playable(784, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-        basic.show_icon(IconNames.CONFUSED)
     else:
+        basic.show_icon(IconNames.SAD)
         music.play(music.tone_playable(988, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
-        basic.show_icon(IconNames.SAD)
+
 # Main
 basic.forever(on_forever)
 ```
@@ -113,11 +174,6 @@ def on_forever():
         cuteBot.stopcar()
         cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
 
-# Forever method for sounds
-def on_forever2():
-    music.play(music.built_in_playable_melody(Melodies.PRELUDE),
-        music.PlaybackMode.UNTIL_DONE)
-
 # Main
 high_speed_turn = 60
 low_speed_turn = 10
@@ -126,17 +182,21 @@ forward_right_speed = 47
 backward_speed = 40
 backward_seconds = 0.2
 
+## Reproduce in loop melody in background without forever
+music.play(music.built_in_playable_melody(Melodies.PRELUDE),
+    music.PlaybackMode.LOOPING_IN_BACKGROUND)
+
 basic.forever(on_forever)
-basic.forever(on_forever2)
 ```
 
 Stop when object and cry:
 ```python
 # Forever method for movement and sound
 def on_forever():
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance < stop_distance:
         cuteBot.stopcar()
-        music.stop_all_sounds()
         music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
             music.PlaybackMode.UNTIL_DONE)
     else:
@@ -146,7 +206,8 @@ def on_forever():
             cuteBot.motors(low_speed_turn, high_speed_turn)
         elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
             cuteBot.motors(high_speed_turn, low_speed_turn)
-        else:
+        else: 
+            # When no object and both AIR sensors to 0
             cuteBot.stopcar()
             cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
 
@@ -166,7 +227,9 @@ Stop when object and turn:
 ```python
 # Forever method for movement and sound
 def on_forever():
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance < stop_distance:
         cuteBot.stopcar()
         basic.pause(stop_time)
         cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
@@ -177,6 +240,7 @@ def on_forever():
     elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
         cuteBot.motors(high_speed_turn, low_speed_turn)
     else:
+        # When no object and both AIR sensors to 0
         cuteBot.stopcar()
         cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
 
@@ -200,10 +264,13 @@ Stop when object, cry 10 clocks and if nothing happens turn:
 # Forever method for movement and sound
 def on_forever():
     global repeat
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+    
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance < stop_distance:
         if repeat < 10:
             cuteBot.stopcar()
-            music.stop_all_sounds()
+            # No need to stop sounds because UNTIL_DONE
             music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
                 music.PlaybackMode.UNTIL_DONE)
             repeat = repeat + 1
@@ -255,6 +322,7 @@ basic.forever(on_forever)
 # Forever controller
 def on_forever_controller():
     global status
+    
     if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
         status = 1
     elif cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
@@ -268,6 +336,8 @@ def on_forever_controller():
 
 # Forever method for movement
 def on_forever_movement():
+    global status
+    
     if status == 1:
         cuteBot.stopcar()
     elif status == 2:
@@ -292,7 +362,9 @@ def on_forever():
     global status, playing
 
     # --- CONTROLLER ---
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) 
+
+    if distance < stop_distance:
         status = 0
     elif cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
         status = 1
@@ -317,7 +389,7 @@ def on_forever():
 
     # --- ACT (sound) ---
     if status == 0:
-        music.stop_all_sounds()
+        music.stop_all_sounds() # Needed because song looping in background
         music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
                         music.PlaybackMode.UNTIL_DONE)
         playing = False
@@ -354,7 +426,6 @@ turn_perc = 60
 turn_time = 0.3
 repeat = 0
 playing = False
-happy = True
 status = 1
 
 basic.forever(on_forever)
@@ -376,7 +447,9 @@ def on_forever():
     global status, playing, repeat
 
     # --- CONTROLLER ---
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    
+    if distance < stop_distance:
         if repeat < 10:
             status = 0
             repeat = repeat + 1
@@ -409,7 +482,6 @@ def on_forever():
         cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
     elif status == 5:
         cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
-
 
     # --- ACT (sound) ---
     if status == 0:
@@ -462,7 +534,10 @@ basic.forever(on_forever_faces)
 # Forever method for movement and sound
 def on_forever():
     global repeat, playing, happy
-    if cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) < stop_distance:
+
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+
+    if distance < stop_distance:
         if repeat < 10:
             cuteBot.stopcar()
             music.stop_all_sounds()

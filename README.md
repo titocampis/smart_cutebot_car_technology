@@ -48,8 +48,82 @@ basic.clear_screen()
 basic.forever(on_forever)
 ```
 
+### Turn signals
+Easy:
+
+```python
+# Method for pres button A
+def on_button_pressed_a():
+    for index in range(repeat):
+        cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0xff8000)
+        basic.pause(sleep)
+        cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0x000000)
+        basic.pause(sleep)
+
+# Method for pres button B
+def on_button_pressed_b():
+    for index2 in range(repeat):
+        cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0xff8000)
+        basic.pause(sleep)
+        cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0x000000)
+        basic.pause(sleep)
+
+# Main
+repeat = 4
+sleep = 500
+input.on_button_pressed(Button.A, on_button_pressed_a)
+input.on_button_pressed(Button.B, on_button_pressed_b)
+```
+
+To interrupt:
+```python
+# Methods
+## Button A
+def on_button_pressed_a():
+    global action
+    if action != 1:
+        action = 1
+    else:
+        action = 0
+
+## Button B
+def on_button_pressed_b():
+    global action
+    if action != 2:
+        action = 2
+    else:
+        action = 0
+
+## Forever
+def on_forever():
+    if action == 1:
+        cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0xff8000)
+        basic.pause(sleep)
+        cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0x000000)
+        basic.pause(sleep)
+    elif action == 2:
+        cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0xff8000)
+        basic.pause(sleep)
+        cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0x000000)
+        basic.pause(sleep)
+    else:
+        cuteBot.color_light(cuteBot.RGBLights.ALL, 0x000000)
+
+# Main
+## Variables
+sleep
+action = 0
+
+## Code
+input.on_button_pressed(Button.A, on_button_pressed_a)
+input.on_button_pressed(Button.B, on_button_pressed_b)
+basic.forever(on_forever)
+```
+
 ## Ultrasound Sensor
 ### Park helper
+Easy:
+
 ```python
 # Forever method
 ## No need to stop all sound because we are using UNTIL_DONE
@@ -73,8 +147,31 @@ threshold_low = 20
 basic.forever(on_forever)
 ```
 
-### Remaining
-// Copy from MSI python codes for intermitents (easy and dificult and pipo)
+Pipo:
+```python
+# Forever method
+def on_forever():
+    distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
+    if distance <= threshold_high:
+        music.play(music.tone_playable(523, music.beat(BeatFraction.QUARTER)),
+            music.PlaybackMode.UNTIL_DONE)
+    elif distance <= threshold_mid:
+        music.play(music.tone_playable(523, music.beat(BeatFraction.HALF)),
+            music.PlaybackMode.UNTIL_DONE)
+    elif distance <= threshold_low:
+        music.play(music.tone_playable(523, music.beat(BeatFraction.WHOLE)),
+            music.PlaybackMode.UNTIL_DONE)
+
+# Main
+## Variables
+threshold_high = 5
+threshold_mid = 12
+threshold_low = 20
+
+
+### Code
+basic.forever(on_forever)
+```
 
 ### Explorer
 ```python

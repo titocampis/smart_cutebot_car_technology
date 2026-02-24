@@ -52,7 +52,7 @@ basic.forever(on_forever)
 Easy:
 
 ```python
-# Method for pres button A
+# Method for press button A
 def on_button_pressed_a():
     for index in range(repeat):
         cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0xff8000)
@@ -60,7 +60,7 @@ def on_button_pressed_a():
         cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0x000000)
         basic.pause(sleep)
 
-# Method for pres button B
+# Method for press button B
 def on_button_pressed_b():
     for index2 in range(repeat):
         cuteBot.color_light(cuteBot.RGBLights.RGB_R, 0xff8000)
@@ -129,7 +129,11 @@ Easy:
 ## No need to stop all sound because we are using UNTIL_DONE
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
-    if distance <= threshold_high:
+    
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance <= threshold_high:
         music.play(music.tone_playable(784, music.beat(BeatFraction.WHOLE)),
             music.PlaybackMode.UNTIL_DONE)
     elif distance <= threshold_mid:
@@ -152,7 +156,11 @@ Pipo:
 # Forever method
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
-    if distance <= threshold_high:
+    
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance <= threshold_high:
         music.play(music.tone_playable(523, music.beat(BeatFraction.QUARTER)),
             music.PlaybackMode.UNTIL_DONE)
     elif distance <= threshold_mid:
@@ -168,7 +176,6 @@ threshold_high = 5
 threshold_mid = 12
 threshold_low = 20
 
-
 ### Code
 basic.forever(on_forever)
 ```
@@ -179,7 +186,10 @@ basic.forever(on_forever)
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance <= turn_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance <= turn_distance:
         cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
     else:
         cuteBot.motors(50, 45)
@@ -198,7 +208,10 @@ With sound:
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance <= turn_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance <= turn_distance:
         cuteBot.motors(turn_perc, -turn_perc)
         music.play(music.tone_playable(440, music.beat(BeatFraction.QUARTER)),
             music.PlaybackMode.UNTIL_DONE)
@@ -292,7 +305,10 @@ Stop when object and cry:
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance < stop_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         cuteBot.stopcar()
         music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
             music.PlaybackMode.UNTIL_DONE)
@@ -326,7 +342,10 @@ Stop when object and turn:
 def on_forever():
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance < stop_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         cuteBot.stopcar()
         basic.pause(stop_time)
         cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
@@ -364,7 +383,10 @@ def on_forever():
     
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance < stop_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         if repeat < 10:
             cuteBot.stopcar()
             # No need to stop sounds because UNTIL_DONE
@@ -461,7 +483,10 @@ def on_forever():
     # --- CONTROLLER ---
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS) 
 
-    if distance < stop_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         status = 0
     elif cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
         status = 1
@@ -546,7 +571,10 @@ def on_forever():
     # --- CONTROLLER ---
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
     
-    if distance < stop_distance:
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         if repeat < 10:
             status = 0
             repeat = repeat + 1
@@ -600,7 +628,7 @@ def on_forever():
     # else:
     #     basic.show_icon(IconNames.HAPPY)
 
-# Foreer faces to avoid overload
+# Forever faces to avoid overload
 def on_forever_faces():
     if status == 0:
             basic.show_icon(IconNames.SAD)
@@ -633,8 +661,11 @@ def on_forever():
     global repeat, playing, happy
 
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
-
-    if distance < stop_distance:
+    
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         if repeat < 10:
             cuteBot.stopcar()
             music.stop_all_sounds()
@@ -706,3 +737,4 @@ To edit this repository in MakeCode.
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
 * paste **https://github.com/titocampis/smart_cutebot_car_technology** and click import
+

@@ -1,69 +1,47 @@
+# Forever method for movement and sound
 def on_forever():
-    global status, playing, repeat
+    global repeat, playing, happy
 
-    # --- CONTROLLER ---
     distance = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
-
-    if distance < stop_distance:
+    
+    # Filter hallucinations
+    if distance == 0:
+        pass
+    elif distance < stop_distance:
         if repeat < 10:
-            status = 0
+            cuteBot.stopcar()
+            music.stop_all_sounds()
+            music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
+                music.PlaybackMode.UNTIL_DONE)
             repeat = repeat + 1
+            playing = False
         else:
-            status = 5
+            cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
             repeat = 0
-    elif cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
-        status = 1
-        repeat = 0
-    elif cuteBot.tracking(cuteBot.TrackingState.L_LINE_R_UNLINE):
-        status = 2
-        repeat = 0
-    elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
-        status = 3
-        repeat = 0
+        happy = False
     else:
-        status = 4
+        if not playing:
+            music._play_default_background(music.built_in_playable_melody(Melodies.PRELUDE),
+                music.PlaybackMode.LOOPING_IN_BACKGROUND)
+            playing = True
+        if cuteBot.tracking(cuteBot.TrackingState.L_R_LINE):
+            cuteBot.motors(forward_left_speed, forward_right_speed)
+        elif cuteBot.tracking(cuteBot.TrackingState.L_LINE_R_UNLINE):
+            cuteBot.motors(low_speed_turn, high_speed_turn)
+        elif cuteBot.tracking(cuteBot.TrackingState.L_UNLINE_R_LINE):
+            cuteBot.motors(high_speed_turn, low_speed_turn)
+        else:
+            cuteBot.stopcar()
+            cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
+        happy = True
         repeat = 0
 
-    # --- ACT (movement) ---
-    if status == 0:
-        cuteBot.stopcar()
-    elif status == 1:
-        cuteBot.motors(forward_left_speed, forward_right_speed)
-    elif status == 2:
-        cuteBot.motors(low_speed_turn, high_speed_turn)
-    elif status == 3:
-        cuteBot.motors(high_speed_turn, low_speed_turn)
-    elif status == 4:
-        cuteBot.move_time(cuteBot.Direction.BACKWARD, backward_speed, backward_seconds)
-    elif status == 5:
-        cuteBot.move_time(cuteBot.Direction.RIGHT, turn_perc, turn_time)
-
-    # --- ACT (sound) ---
-    if status == 0:
-        music.stop_all_sounds()
-        music.play(music.tone_playable(784, music.beat(BeatFraction.HALF)),
-                        music.PlaybackMode.UNTIL_DONE)
-        playing = False
-    elif not playing:
-        music._play_default_background(
-            music.built_in_playable_melody(Melodies.PRELUDE),
-            music.PlaybackMode.LOOPING_IN_BACKGROUND
-        )
-        playing = True
-
-    # # --- Faces (LEDs screen) --- CANNOT GO HERE OVERLOAD AND FAIL
-    # --> Needs to go into another forever
-    # if status == 0:
-    #     basic.show_icon(IconNames.SAD)
-    # else:
-    #     basic.show_icon(IconNames.HAPPY)
-
-# Foreer faces to avoid overload
+# Forever method for faces
 def on_forever_faces():
-    if status == 0:
-            basic.show_icon(IconNames.SAD)
-    else:
+    if happy:
         basic.show_icon(IconNames.HAPPY)
+    else:
+        basic.show_icon(IconNames.SAD)
 
 # Main
 stop_distance = 10
@@ -77,7 +55,7 @@ turn_perc = 60
 turn_time = 0.3
 repeat = 0
 playing = False
-status = 1
+happy = True
 
 basic.forever(on_forever)
 basic.forever(on_forever_faces)
